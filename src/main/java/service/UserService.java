@@ -3,13 +3,16 @@ package service;
 import DTO.UserDTO;
 import domain.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -87,5 +90,20 @@ public class UserService {
                 updatedUser.getBirthDate(),  // birth_date
                 updatedUser.getGender()     // gender
         );
+    }
+
+    // UserDetailsService 인터페이스 구현
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 사용자 이름으로 DB에서 사용자 정보를 조회
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+
+        // UserDetails 객체 반환
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUsername())
+                .password(user.getPassword())  // 암호화된 비밀번호
+                .roles("USER")  // 기본 USER 역할 부여
+                .build();
     }
 }
