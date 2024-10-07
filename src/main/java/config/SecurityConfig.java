@@ -19,6 +19,7 @@ public class SecurityConfig {
         http
                 .cors().and().csrf().disable() // CORS 허용 및 CSRF 비활성화
                 .authorizeHttpRequests((requests) -> requests
+                        .requestMatchers("/users/login").permitAll()
                         .requestMatchers("/movies/**").permitAll()
                         .anyRequest().permitAll()
                 )
