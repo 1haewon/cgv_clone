@@ -18,7 +18,7 @@ public class User {
     @Column(nullable = false)
     private String username;  // 사용자 이름
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;  // 이메일 주소
 
     @Column(nullable = false)
