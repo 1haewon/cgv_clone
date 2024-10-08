@@ -20,15 +20,22 @@ import java.util.Date;
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;  // 직접 주입
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${jwt.secret}")
     private String jwtSecret;
 
     // 회원가입
     public UserDTO.UserResponse registerUser(UserDTO.UserCreateRequest request) {
+        // 아이디 중복 확인
+        if (userRepository.findByUsername(request.getUser_name()).isPresent()) {
+            throw new RuntimeException("이미 존재하는 아이디입니다.");
+        }
+
+        // 비밀번호 인코딩
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
+        // 사용자 객체 생성 및 저장
         User user = new User(
                 request.getUser_name(),
                 request.getEmail(),
@@ -39,6 +46,7 @@ public class UserService implements UserDetailsService {
         );
 
         User savedUser = userRepository.save(user);
+
         return new UserDTO.UserResponse(
                 savedUser.getUsername(),
                 savedUser.getEmail(),
@@ -77,6 +85,7 @@ public class UserService implements UserDetailsService {
     public UserDTO.UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
         return new UserDTO.UserResponse(
                 user.getUsername(),
                 user.getEmail(),
@@ -99,6 +108,7 @@ public class UserService implements UserDetailsService {
         existingUser.setGender(request.getGender());
 
         User updatedUser = userRepository.save(existingUser);
+
         return new UserDTO.UserResponse(
                 updatedUser.getUsername(),
                 updatedUser.getEmail(),
