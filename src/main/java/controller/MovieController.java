@@ -3,46 +3,41 @@ package controller;
 import DTO.MovieRequestDTO;
 import DTO.MovieResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import service.MovieService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/movies")
 @RequiredArgsConstructor
 public class MovieController {
+
     private final MovieService movieService;
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    @GetMapping("/popular")
-    public ResponseEntity<List<MovieResponseDTO>> getPopularMovies() {
-        List<MovieResponseDTO> movies = movieService.getPopularMovies();
-        return ResponseEntity.ok(movies);
-    }
+    @Value("${tmdb.api.key}")
+    private String apiKey;
 
-    @GetMapping("/latest")
-    public ResponseEntity<List<MovieResponseDTO>> getLatestMovies() {
-        List<MovieResponseDTO> movies = movieService.getLatestMovies();
-        return ResponseEntity.ok(movies);
-    }
-
+    // 영화 상세 정보 조회 API
     @GetMapping("/{movieId}")
-    public ResponseEntity<MovieResponseDTO> getMovieDetails(@PathVariable Long movieId) {
-        MovieResponseDTO movie = movieService.getMovieDetails(movieId);
-        return ResponseEntity.ok(movie);
+    public ResponseEntity<?> getMovieDetail(@PathVariable Long movieId) {
+        String url = "https://api.themoviedb.org/3/movie/" + movieId + "?api_key=" + apiKey;
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        return ResponseEntity.ok(response.getBody());
     }
 
+    // 기존 코드 유지
     @PostMapping
-    public ResponseEntity<String> saveMovie(@RequestBody MovieRequestDTO request) {
-        movieService.saveMovie(request);
-        return ResponseEntity.ok("Movie saved successfully");
+    public ResponseEntity<MovieResponseDTO> saveMovie(@RequestBody MovieRequestDTO request) {
+        MovieResponseDTO savedMovie = movieService.saveMovie(request);
+        return ResponseEntity.ok(savedMovie);
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteMovie(@RequestParam Long movieId) {
+    @DeleteMapping("/{movieId}")
+    public ResponseEntity<String> deleteMovie(@PathVariable Long movieId) {
         movieService.deleteMovie(movieId);
         return ResponseEntity.ok("Movie deleted successfully");
     }
-
 }

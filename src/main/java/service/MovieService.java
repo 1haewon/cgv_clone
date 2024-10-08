@@ -79,7 +79,7 @@ public class MovieService {
     }
 
     // 4. 영화 저장
-    public void saveMovie(MovieRequestDTO request) {
+    public MovieResponseDTO saveMovie(MovieRequestDTO request) {
         Movie movie = new Movie();
         movie.setTitle(request.getTitle());
         movie.setPosterPath(request.getPosterPath());
@@ -89,7 +89,8 @@ public class MovieService {
         // 추가: overview 길이 로그 출력
         logger.info("Overview length: " + movie.getOverview().length());
 
-        movieRepository.save(movie);
+        Movie savedMovie = movieRepository.save(movie);
+        return new MovieResponseDTO(savedMovie);
     }
 
     // 5. 영화 삭제
