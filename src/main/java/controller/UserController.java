@@ -15,23 +15,8 @@ public class UserController {
     private final UserService userService;
     private final ReservationService reservationService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<String> signUp(@RequestBody UserDTO.UserCreateRequest request) {
-        userService.registerUser(request);
-        return ResponseEntity.ok("User registered successfully");
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDTO.UserLoginRequest loginRequest) {
-        boolean isLoginSuccessful = userService.login(loginRequest);
-        if (isLoginSuccessful) {
-            return ResponseEntity.ok("Login successful");
-        }
-        return ResponseEntity.status(401).body("Invalid credentials");
-    }
-
-    @DeleteMapping
-    public ResponseEntity<String> deleteUser(@RequestParam Long userId) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
         return ResponseEntity.ok("User deleted successfully");
     }
@@ -42,9 +27,10 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PutMapping
-    public ResponseEntity<String> updateUser(@RequestBody UserDTO.UserCreateRequest request) {
-        userService.updateUser(request);
+    @PutMapping("/{userId}")
+    public ResponseEntity<String> updateUser(@PathVariable Long userId, @RequestBody UserDTO.UserCreateRequest request) {
+        // PasswordEncoder를 함께 전달하지 않고 updateUser 호출
+        userService.updateUser(userId, request);
         return ResponseEntity.ok("User updated successfully");
     }
 
@@ -52,6 +38,4 @@ public class UserController {
     public ResponseEntity<?> getUserReservations(@PathVariable Long userId) {
         return ResponseEntity.ok(reservationService.getReservationsByUserId(userId));
     }
-
-
 }
