@@ -2,6 +2,7 @@ package controller;
 
 import DTO.UserDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import service.UserService;
 
@@ -20,7 +21,8 @@ public class AuthController {
 
     // 로그인 API
     @PostMapping("/login")
-    public boolean login(@RequestBody UserDTO.UserLoginRequest request) {
-        return userService.login(request);
+    public ResponseEntity<String> login(@RequestBody UserDTO.UserLoginRequest request) {
+        String token = userService.login(request);
+        return ResponseEntity.ok(token);
     }
 }

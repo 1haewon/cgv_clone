@@ -2,7 +2,10 @@ package service;
 
 import DTO.UserDTO;
 import domain.User;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,12 +13,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import repository.UserRepository;
 
+import java.util.Date;
+
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;  // 직접 주입
+
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     // 회원가입
     public UserDTO.UserResponse registerUser(UserDTO.UserCreateRequest request) {
@@ -40,10 +48,24 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    // 로그인
-    public boolean login(UserDTO.UserLoginRequest request) {
-        User user = userRepository.findByUsername(request.getId()).orElse(null);
-        return user != null && passwordEncoder.matches(request.getPassword(), user.getPassword());
+    // 로그인 - JWT 발급
+    public String login(UserDTO.UserLoginRequest request) {
+        User user = userRepository.findByUsername(request.getId())
+                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid username or password");
+        }
+
+        // JWT 발급
+        String jwt = Jwts.builder()
+                .setSubject(user.getUsername())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 만료시간 1일
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .compact();
+
+        return jwt;
     }
 
     // 회원 삭제

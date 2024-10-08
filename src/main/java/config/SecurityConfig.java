@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -29,6 +30,7 @@ public class SecurityConfig {
                         .requestMatchers("/movies/**").permitAll()  // 영화 정보에 대한 접근 허용
                         .anyRequest().authenticated()  // 그 외 모든 요청은 인증 필요
                 )
+                .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)  // JWT 인증 필터 추가
                 .formLogin((form) -> form
                         .loginPage("/login").permitAll()
                 )
