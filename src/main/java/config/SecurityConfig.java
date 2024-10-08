@@ -37,14 +37,16 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        // UserService를 통해 사용자 정보 로드
-        return userService;
-    }
-
+    // PasswordEncoder Bean 정의 (SecurityConfig에서만 관리)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();  // BCrypt 비밀번호 인코더 사용
     }
+
+    // UserService에서 UserDetailsService 구현하는 경우, 이를 사용하여 사용자 정보 로드
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return userService;  // UserService에서 UserDetailsService 구현
+    }
 }
+

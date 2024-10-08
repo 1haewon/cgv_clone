@@ -19,8 +19,9 @@ public class UserService implements UserDetailsService {
 
     // 회원가입
     public UserDTO.UserResponse registerUser(UserDTO.UserCreateRequest request) {
-        // 비밀번호 암호화
+        // 비밀번호 암호화는 SecurityConfig에서 제공하는 PasswordEncoder를 통해서 사용
         String encodedPassword = passwordEncoder.encode(request.getPassword());
+
 
         // User 엔티티로 변환
         User user = new User(
