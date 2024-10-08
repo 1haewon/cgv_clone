@@ -111,9 +111,10 @@ public class ReservationService {
         return new ReservationResponseDTO(reservation);
     }
 
-    // 특정 사용자 ID로 예약 목록 조회 메소드 추가
-    public List<Reservation> getReservationsByUserId(Long userId) {
-        return reservationRepository.findByUserId(userId);
+    // 특정 사용자 ID로 예약 목록 조회 메소드 수정 (userId를 String 타입으로 받음)
+    public List<Reservation> getReservationsByUserId(String userId) {
+        Long parsedUserId = Long.parseLong(userId); // String userId를 Long으로 변환
+        return reservationRepository.findByUserId(parsedUserId);
     }
 
     // 예약 취소 메소드 추가 (완전 삭제 방식)

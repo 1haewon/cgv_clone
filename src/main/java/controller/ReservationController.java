@@ -28,9 +28,9 @@ public class ReservationController {
         return ResponseEntity.ok(reservation);
     }
 
-    // 특정 사용자 ID로 예약 목록 조회 엔드포인트
+    // 특정 사용자 ID로 예약 목록 조회 엔드포인트 (userId 타입을 String으로 변경)
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getReservationsByUser(@PathVariable Long userId) {
+    public ResponseEntity<?> getReservationsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(reservationService.getReservationsByUserId(userId));
     }
 

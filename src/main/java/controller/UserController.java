@@ -16,26 +16,25 @@ public class UserController {
     private final ReservationService reservationService;
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
+    public ResponseEntity<String> deleteUser(@PathVariable String userId) {
         userService.deleteUser(userId);
         return ResponseEntity.ok("User deleted successfully");
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO.UserResponse> getUser(@PathVariable Long userId) {
+    public ResponseEntity<UserDTO.UserResponse> getUser(@PathVariable String userId) {
         UserDTO.UserResponse user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<String> updateUser(@PathVariable Long userId, @RequestBody UserDTO.UserCreateRequest request) {
-        // PasswordEncoder를 함께 전달하지 않고 updateUser 호출
+    public ResponseEntity<String> updateUser(@PathVariable String userId, @RequestBody UserDTO.UserCreateRequest request) {
         userService.updateUser(userId, request);
         return ResponseEntity.ok("User updated successfully");
     }
 
     @GetMapping("/{userId}/reservations")
-    public ResponseEntity<?> getUserReservations(@PathVariable Long userId) {
+    public ResponseEntity<?> getUserReservations(@PathVariable String userId) {
         return ResponseEntity.ok(reservationService.getReservationsByUserId(userId));
     }
 }

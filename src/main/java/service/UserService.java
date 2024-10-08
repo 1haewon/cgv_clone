@@ -28,7 +28,7 @@ public class UserService implements UserDetailsService {
     // 회원가입
     public UserDTO.UserResponse registerUser(UserDTO.UserCreateRequest request) {
         // 아이디 중복 확인
-        if (userRepository.findByUsername(request.getUser_name()).isPresent()) {
+        if (userRepository.findByUserId(request.getId()).isPresent()) {
             throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
 
@@ -37,6 +37,7 @@ public class UserService implements UserDetailsService {
 
         // 사용자 객체 생성 및 저장
         User user = new User(
+                request.getId(), // 사용자가 제공한 id 필드
                 request.getUser_name(),
                 request.getEmail(),
                 encodedPassword,
@@ -48,6 +49,7 @@ public class UserService implements UserDetailsService {
         User savedUser = userRepository.save(user);
 
         return new UserDTO.UserResponse(
+                savedUser.getUserId(),
                 savedUser.getUsername(),
                 savedUser.getEmail(),
                 savedUser.getPhoneNumber(),
@@ -58,7 +60,7 @@ public class UserService implements UserDetailsService {
 
     // 로그인 - JWT 발급
     public String login(UserDTO.UserLoginRequest request) {
-        User user = userRepository.findByUsername(request.getId())
+        User user = userRepository.findByUserId(request.getId())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -67,7 +69,7 @@ public class UserService implements UserDetailsService {
 
         // JWT 발급
         String jwt = Jwts.builder()
-                .setSubject(user.getUsername())
+                .setSubject(user.getUserId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 만료시간 1일
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
@@ -77,16 +79,19 @@ public class UserService implements UserDetailsService {
     }
 
     // 회원 삭제
-    public void deleteUser(Long userId) {
-        userRepository.deleteById(userId);
+    public void deleteUser(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
     }
 
     // 사용자 조회
-    public UserDTO.UserResponse getUserById(Long userId) {
-        User user = userRepository.findById(userId)
+    public UserDTO.UserResponse getUserById(String userId) {
+        User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return new UserDTO.UserResponse(
+                user.getUserId(),            // 사용자가 제공한 ID 반환
                 user.getUsername(),
                 user.getEmail(),
                 user.getPhoneNumber(),
@@ -96,8 +101,8 @@ public class UserService implements UserDetailsService {
     }
 
     // 사용자 정보 업데이트
-    public UserDTO.UserResponse updateUser(Long userId, UserDTO.UserCreateRequest request) {
-        User existingUser = userRepository.findById(userId)
+    public UserDTO.UserResponse updateUser(String userId, UserDTO.UserCreateRequest request) {
+        User existingUser = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         existingUser.setEmail(request.getEmail());
@@ -110,6 +115,7 @@ public class UserService implements UserDetailsService {
         User updatedUser = userRepository.save(existingUser);
 
         return new UserDTO.UserResponse(
+                updatedUser.getUserId(),      // 사용자가 제공한 ID 반환
                 updatedUser.getUsername(),
                 updatedUser.getEmail(),
                 updatedUser.getPhoneNumber(),
@@ -120,12 +126,12 @@ public class UserService implements UserDetailsService {
 
     // UserDetailsService 구현
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + username));
+    public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userId));
 
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
+                .username(user.getUserId())
                 .password(user.getPassword())
                 .roles("USER")
                 .build();
